@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Image classification</title>
+  <!-- Load TensorFlow.js from a script tag -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.1"></script>
+  <!-- Load the MobileNet model. -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@1.0.0"></script>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kavoon&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <h1> TensorFlow - Image classification</h1>
+  <input type="file" id="uploadInput" accept="image/*">
+  <div class="main">
+
+    <div id="imageContainer"></div>
+    <div id="predictions" class="predictions"></div>
+  </div>
+
+  <script>
+    // Notice there is no 'import' statement. 'mobilenet' and 'tf' are
+    // available on the index-page because of the script tags above.
+
+    const uploadInput = document.getElementById('uploadInput');
+    const predictionsDiv = document.getElementById('predictions');
+    const imageContainer = document.getElementById('imageContainer');
+
+    // Load the model.
+    mobilenet.load().then(model => {
+      // Handle image upload when a file is selected.
+      uploadInput.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+
+        if (file) {
+          // Create an image element and append it to the 'imageContainer' div.
+          const img = document.createElement('img');
+          // img.style.width = '100%'; // Set the width to 25% of the screen size.
+          img.style.height = '60vh'; // Set the width to 25% of the screen size.
+          imageContainer.innerHTML = ''; // Clear previous images.
+          imageContainer.appendChild(img);
+
+          // Clear previous predictions.
+          predictionsDiv.innerHTML = '';
+
+          // Set up an event listener for the 'load' event to ensure the image is loaded before classifying.
+          img.addEventListener('load', async () => {
+            // Classify the uploaded image.
+            const predictions = await model.classify(img);
+            console.log('Predictions:');
+            console.log(predictions);
+
+            // Display the predictions after classification.
+            if (predictions.length > 0) {
+              const predictionText = predictions.map(prediction => {
+                return `${prediction.className}: ${Math.round(prediction.probability * 100)}%`;
+              }).join('<br>');
+
+              predictionsDiv.innerHTML = `<h2>Predictions:</h2>${predictionText}`;
+            } else {
+              predictionsDiv.innerHTML = "<h2>No predictions found.</h2>";
+            }
+          });
+
+          // Load the selected image into the img element.
+          img.src = URL.createObjectURL(file);
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
